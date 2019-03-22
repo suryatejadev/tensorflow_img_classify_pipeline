@@ -1,0 +1,16 @@
+exp_id: debug
+output_dir: ../outputs
+
+data:
+    path: ../data/tiny-imagenet-200/
+    
+
+datagen:
+    batch_size: 4    
+
+model:
+    image_size: [224, 224, 3]
+    model_name: inception_v3
+    loss_name: categorical_crossentropy
+    model_params:
+           
