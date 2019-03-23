@@ -5,7 +5,7 @@ import yaml
 import argparse
 from shutil import copyfile
 import tensorflow as tf
-#  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.python.framework.ops import reset_default_graph
 
 from src import engine, datagen, utils
@@ -22,9 +22,6 @@ def main(config_file):
     utils.create_dirs([output_dir, \
             output_dir + '/checkpoints', \
             output_dir + '/logs', \
-            output_dir + '/logs/data', \
-            output_dir + '/logs/train', \
-            output_dir + '/logs/val', \
             output_dir + '/results'])
     copyfile(config_file, os.path.join(output_dir, 'config.yaml'))
 
@@ -33,8 +30,8 @@ def main(config_file):
     train_iter, val_iter = data.datagen(output_dir+'/logs/data', **config['datagen'])
     
     # Build the model
-    model = engine.Engine(**config['model'])
-    model.train(train_iter, val_iter, output_dir+'/logs', **config['train'])
+    #  model = engine.Engine(**config['model'])
+    #  model.train(train_iter, val_iter, output_dir+'/logs', **config['train'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
