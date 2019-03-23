@@ -26,8 +26,8 @@ def main(config_file):
     copyfile(config_file, os.path.join(output_dir, 'config.yaml'))
 
     # Get train and val datagen
-    data = datagen.Data(**config['datagen'])
-    train_iter, val_iter = data.datagen(output_dir+'/logs/data', **config['datagen'])
+    data = datagen.Data(**config['data'])
+    train_iter, val_iter = data.datagen(output_dir+'/logs/datagen', **config['datagen'])
     
     # Build the model
     model = engine.Engine(**config['model'])

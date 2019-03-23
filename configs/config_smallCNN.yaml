@@ -1,0 +1,26 @@
+exp_id: debug_smallCNN1
+output_dir: ../outputs
+
+data:
+    # path: ../data/tiny-imagenet-200/
+    path: ../data/cifar10/
+    num_classes: 10
+    display_stats: True
+
+datagen:
+    batch_size: &bsize 64    
+    image_size: &imsize [32, 32, 3]
+
+model:
+    image_size: *imsize
+    model_name: small_cnn
+    loss_name: categorical_crossentropy
+    model_params:
+        num_classes: 10
+
+train:
+    num_epochs: 2
+    validation_freq: 1
+    checkpoint_freq: 200
+     
+

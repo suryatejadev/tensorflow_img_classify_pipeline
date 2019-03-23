@@ -13,7 +13,8 @@ class Engine:
     def __init__(self, image_size, model_name, loss_name, model_params):
 
         model_lut = {
-                'inception_v3': models.InceptionV3
+                'inception_v3': models.InceptionV3,
+                'small_cnn': models.smallCNN
                 }
        
         [h, w, ch] = image_size
@@ -41,13 +42,17 @@ class Engine:
         return tf.reduce_mean(acc)
 
     def train(self, train_iter, val_iter, output_dir, 
-            num_epochs, batch_size, validation_freq, checkpoint_freq):     
+            num_epochs, validation_freq, checkpoint_freq):     
+
+        train_next = train_iter.get_next()
+        val_next = val_iter.get_next()
 
         # summaries
         summary_loss_train = tf.summary.scalar('Train Loss', self.loss)
         loss_gap, acc_val = tf.Variable(0.0), tf.Variable(0.0)
         summary_loss_gap = tf.summary.scalar('Train-Val Gap', loss_gap)
         summary_acc_val = tf.summary.scalar('Validation Accuracy', acc_val)
+
 
         #  sess = self.init_session()
         with tf.Session() as sess:
@@ -56,7 +61,8 @@ class Engine:
             writer_train = tf.summary.FileWriter(output_dir+'/logs/train', sess.graph)
             writer_gap = tf.summary.FileWriter(output_dir+'/logs/train_val_gap', sess.graph)
             writer_val = tf.summary.FileWriter(output_dir+'/logs/val', sess.graph)
-            sess.run(tf.global_variables_initializer())
+
+            sess.run(tf.global_variables_initializer())            
             
             itr_summary_train = 0
             itr_summary_val = 0
@@ -68,7 +74,7 @@ class Engine:
                 while True:
                     try: 
                         # Train the model
-                        x_train, y_train = sess.run(train_iter.get_next())
+                        x_train, y_train = sess.run(train_next)
                         _, loss_train, summary = sess.run(
                                 [self.optimizer, self.loss, summary_loss_train], 
                                 feed_dict = {self.x: x_train, self.y: y_train}
@@ -81,12 +87,12 @@ class Engine:
                         if iteration % validation_freq == 0:
                             sess.run(val_iter.initializer)
                             loss_val_i = 0; acc_val_i = 0; num_val = 0
-                            print('Train Time for {} iterations = {}'.\
-                                    format(checkpoint_freq, time()-t))
+                            #  print('Train Time for {} iterations = {}'.\
+                            #          format(checkpoint_freq, time()-t))
                             t = time()
                             while True:
                                 try:
-                                    x_val, y_val = sess.run(val_iter.get_next())
+                                    x_val, y_val = sess.run(val_next)
                                     n = x_val.shape[0]
                                     num_val += x_val.shape[0]
                                     loss_val_temp, acc_val_temp = \
@@ -98,7 +104,7 @@ class Engine:
                                     acc_val_i += n * acc_val_temp
                                 except tf.errors.OutOfRangeError:
                                     break
-                            print('Validation Time = ', time()-t)
+                            #  print('Validation Time = ', time()-t)
                             acc_val_i /= num_val
                             summary = sess.run(summary_acc_val, \
                                     feed_dict = {acc_val: acc_val_i})
@@ -114,12 +120,13 @@ class Engine:
                             itr_summary_val += 1
 
                             # Print output
-                            print('Epoch = {}, Iteration = {}, \
-                                    Train Loss = {}. Gap = {}, \
-                                    Validation Accuracy = {}'.\
-                                    format(epoch, iteration, loss_train, \
-                                    loss_gap_i, acc_val_i))
-                        
+                            msg = 'Epoch = ' + str(epoch)
+                            msg += ', Iteration = ' + str(iteration)
+                            msg += ', Train Loss = ' + str(round(loss_train, 2))
+                            msg += ', Gap = ' + str(round(loss_gap_i, 2))
+                            msg += ', Val Accuracy = ' + str(round(acc_val_i, 2))
+                            print(msg)
+
                         if iteration % checkpoint_freq == 0:
                             saver.save(sess, output_dir + \
                                     '/checkpoints/session_ep' + \

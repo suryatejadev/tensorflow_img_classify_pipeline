@@ -15,10 +15,11 @@ class Data:
             self.display_stats()
 
     # Preprocess data
-    def preprocess_data(self, path, label):
+    def preprocess_data(self, path, label, image_size):
         img = tf.read_file(path)
         img = tf.image.decode_jpeg(img, channels = 3)
-        img = tf.image.resize_images(img, [224, 224])
+        [h, w, ch] = image_size
+        img = tf.image.resize_images(img, [h, w])
         img = img/255.0
         return img, label
 
@@ -31,7 +32,7 @@ class Data:
                                tf.random_uniform(shape=[], minval=-10, maxval=10)])
         return img_tx, label
     
-    def datagen(self, logs_dir, batch_size):
+    def datagen(self, logs_dir, batch_size, image_size):
         self.batch_size = batch_size
 
         # Get train datagen and iterator
@@ -39,7 +40,8 @@ class Data:
                 (self.train_paths, self.train_labels))
         train_dataset = train_dataset.shuffle(\
                 buffer_size = len(self.train_paths))
-        train_dataset = train_dataset.map(self.preprocess_data) #, \
+        train_dataset = train_dataset.map(\
+                lambda x, y: self.preprocess_data(x, y, image_size)) #, \
                               #  num_parallel_calls = \
                               #  tf.data.experimental.AUTOTUNE)
         train_dataset = train_dataset.map(self.augment_data) #, \
@@ -52,7 +54,8 @@ class Data:
         # (no shuffling and data augmentation)
         val_dataset = tf.data.Dataset.from_tensor_slices(\
                 (self.val_paths, self.val_labels))
-        val_dataset = val_dataset.map(self.preprocess_data) #, \
+        val_dataset = val_dataset.map(\
+                lambda x, y: self.preprocess_data(x, y, image_size)) #, \
                               #  num_parallel_calls = \
                               #  tf.data.experimental.AUTOTUNE)
         val_dataset = val_dataset.batch(batch_size)
