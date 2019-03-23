@@ -35,17 +35,19 @@ class Engine:
         return loss
 
     def get_accuracy(self, y, y_pred):
-        y_hat = tf.argmax(tf.nn.softmax(y_pred))
-        return tf.metrics.accuracy(y, y_hat)
+        y_hat = tf.argmax(tf.nn.softmax(y_pred), axis=-1)
+        acc = tf.equal(y, tf.cast(y_hat, tf.int32))
+        acc = tf.cast(acc, tf.float32)
+        return tf.reduce_mean(acc)
 
     def train(self, train_iter, val_iter, logs_dir, 
             num_epochs, batch_size, checkpoint_freq):     
 
         # summaries
         summary_loss_train = tf.summary.scalar('Train Loss', self.loss)
-        loss_gap = tf.Variable(0.0)
+        loss_gap, acc_val = tf.Variable(0.0), tf.Variable(0.0)
         summary_loss_gap = tf.summary.scalar('Train-Val Gap', loss_gap)
-        summary_acc_val = tf.summary.scalar('Validation Loss', self.accuracy)
+        summary_acc_val = tf.summary.scalar('Validation Accuracy', acc_val)
 
         #  sess = self.init_session()
         with tf.Session() as sess:
@@ -77,7 +79,7 @@ class Engine:
                         # Summary : Train-val gap
                         if iteration % checkpoint_freq == 0:
                             sess.run(val_iter.initializer)
-                            loss_val = 0; num_val = 0
+                            loss_val_i = 0; acc_val_i = 0; num_val = 0
                             print('Train Time for {} iterations = {}'.\
                                     format(checkpoint_freq, time()-t))
                             t = time()
@@ -87,33 +89,35 @@ class Engine:
                                     n = x_val.shape[0]
                                     num_val += x_val.shape[0]
                                     loss_val_temp, acc_val_temp = \
-                                            n * sess.run(
-                                            [self.loss, self.accuracy], 
-                                            feed_dict = {self.x: x_val, \
+                                            sess.run(\
+                                            [self.loss, self.accuracy],\
+                                                    feed_dict = {self.x: x_val, \
                                                     self.y: y_val})
-                                    loss_val += loss_val_temp
-                                    acc_val += acc_val_temp
+                                    loss_val_i += n * loss_val_temp
+                                    acc_val_i += n * acc_val_temp
                                 except tf.errors.OutOfRangeError:
                                     break
                             print('Validation Time = ', time()-t)
-                            acc_val /= num_val
-                            writer_val.add_summary(summary_acc_val, itr_summary_val)
-                            loss_val /= num_val
+                            acc_val_i /= num_val
+                            summary = sess.run(summary_acc_val, \
+                                    feed_dict = {acc_val: acc_val_i})
+                            writer_val.add_summary(summary, itr_summary_val)
+                            loss_val_i /= num_val
                             loss_train = sess.run(self.loss, 
                                     feed_dict = {self.x: x_train, self.y: y_train}
                                     )
-                            loss_gap_i = loss_val - loss_train
-                            summary_gap = sess.run(summary_loss_gap, 
+                            loss_gap_i = loss_val_i - loss_train
+                            summary = sess.run(summary_loss_gap, 
                                     feed_dict = {loss_gap: loss_gap_i})
-                            writer_gap.add_summary(summary_gap, itr_summary_val)
+                            writer_gap.add_summary(summary, itr_summary_val)
                             itr_summary_val += 1
 
                             # Print output
                             print('Epoch = {}, Iteration = {}, \
                                     Train Loss = {}. Gap = {}, \
                                     Validation Accuracy = {}'.\
-                                    format(epoch, itr, loss_train, \
-                                    loss_gap_i, acc_val))
+                                    format(epoch, iteration, loss_train, \
+                                    loss_gap_i, acc_val_i))
                         
                         iteration += 1
 

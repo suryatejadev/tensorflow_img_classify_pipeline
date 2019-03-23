@@ -30,8 +30,8 @@ def main(config_file):
     train_iter, val_iter = data.datagen(output_dir+'/logs/data', **config['datagen'])
     
     # Build the model
-    #  model = engine.Engine(**config['model'])
-    #  model.train(train_iter, val_iter, output_dir+'/logs', **config['train'])
+    model = engine.Engine(**config['model'])
+    model.train(train_iter, val_iter, output_dir+'/logs', **config['train'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
