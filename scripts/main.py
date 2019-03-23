@@ -5,7 +5,7 @@ import yaml
 import argparse
 from shutil import copyfile
 import tensorflow as tf
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+#  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.python.framework.ops import reset_default_graph
 
 from src import engine, datagen, utils

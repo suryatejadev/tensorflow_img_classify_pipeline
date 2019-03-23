@@ -21,7 +21,6 @@ class Data:
         img = tf.image.resize_images(img, [224, 224])
         img = img/255.0
         return img, label
-    
 
     # Augment data (translate and rotate)
     def augment_data(self, img, label):
@@ -40,12 +39,12 @@ class Data:
                 (self.train_paths, self.train_labels))
         train_dataset = train_dataset.shuffle(\
                 buffer_size = len(self.train_paths))
-        train_dataset = train_dataset.map(self.preprocess_data, \
-                              num_parallel_calls = \
-                              tf.data.experimental.AUTOTUNE)
-        train_dataset = train_dataset.map(self.augment_data, \
-                              num_parallel_calls = \
-                              tf.data.experimental.AUTOTUNE)
+        train_dataset = train_dataset.map(self.preprocess_data) #, \
+                              #  num_parallel_calls = \
+                              #  tf.data.experimental.AUTOTUNE)
+        train_dataset = train_dataset.map(self.augment_data) #, \
+                              #  num_parallel_calls = \
+                              #  tf.data.experimental.AUTOTUNE)
         train_dataset = train_dataset.batch(batch_size)
         train_iter = train_dataset.make_initializable_iterator()
 
@@ -53,9 +52,9 @@ class Data:
         # (no shuffling and data augmentation)
         val_dataset = tf.data.Dataset.from_tensor_slices(\
                 (self.val_paths, self.val_labels))
-        val_dataset = val_dataset.map(self.preprocess_data, \
-                              num_parallel_calls = \
-                              tf.data.experimental.AUTOTUNE)
+        val_dataset = val_dataset.map(self.preprocess_data) #, \
+                              #  num_parallel_calls = \
+                              #  tf.data.experimental.AUTOTUNE)
         val_dataset = val_dataset.batch(batch_size)
         val_iter = val_dataset.make_initializable_iterator()
 

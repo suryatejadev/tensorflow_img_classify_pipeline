@@ -1,4 +1,4 @@
-exp_id: debug
+exp_id: debug1
 output_dir: ../outputs
 
 data:
@@ -8,7 +8,7 @@ data:
     display_stats: True
 
 datagen:
-    batch_size: &bsize 4    
+    batch_size: &bsize 64    
 
 model:
     image_size: [224, 224, 3]

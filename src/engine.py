@@ -2,6 +2,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 from scipy.misc import imsave
+from time import time
 
 import tensorflow as tf
 from tensorflow.python.client import device_lib
@@ -59,6 +60,7 @@ class Engine:
             itr_summary_val = 0
             for epoch in range(num_epochs):
                 # Training
+                t=time()
                 sess.run(train_iter.initializer)
                 itr = 0
                 while 1:
@@ -80,7 +82,8 @@ class Engine:
                             break
                     except tf.errors.OutOfRangeError:
                         break
-
+                print(time()-t)
+                t=time()
                 # Validation
                 sess.run(val_iter.initializer)
                 print('Validation')
@@ -100,6 +103,8 @@ class Engine:
                     except tf.errors.OutOfRangeError:
                         break
                 print('Validation Loss = ', loss_val)
+                print(time()-t)
+
 
     def evaluate(self):
         pass
