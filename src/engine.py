@@ -40,8 +40,8 @@ class Engine:
         acc = tf.cast(acc, tf.float32)
         return tf.reduce_mean(acc)
 
-    def train(self, train_iter, val_iter, logs_dir, 
-            num_epochs, batch_size, checkpoint_freq):     
+    def train(self, train_iter, val_iter, output_dir, 
+            num_epochs, batch_size, validation_freq, checkpoint_freq):     
 
         # summaries
         summary_loss_train = tf.summary.scalar('Train Loss', self.loss)
@@ -51,10 +51,11 @@ class Engine:
 
         #  sess = self.init_session()
         with tf.Session() as sess:
+            saver = tf.train.Saver()
 
-            writer_train = tf.summary.FileWriter(logs_dir+'/train', sess.graph)
-            writer_gap = tf.summary.FileWriter(logs_dir+'/train_val_gap', sess.graph)
-            writer_val = tf.summary.FileWriter(logs_dir+'/val', sess.graph)
+            writer_train = tf.summary.FileWriter(output_dir+'/logs/train', sess.graph)
+            writer_gap = tf.summary.FileWriter(output_dir+'/logs/train_val_gap', sess.graph)
+            writer_val = tf.summary.FileWriter(output_dir+'/logs/val', sess.graph)
             sess.run(tf.global_variables_initializer())
             
             itr_summary_train = 0
@@ -77,7 +78,7 @@ class Engine:
                         
                         # Get validation results at checkpoint
                         # Summary : Train-val gap
-                        if iteration % checkpoint_freq == 0:
+                        if iteration % validation_freq == 0:
                             sess.run(val_iter.initializer)
                             loss_val_i = 0; acc_val_i = 0; num_val = 0
                             print('Train Time for {} iterations = {}'.\
@@ -119,39 +120,15 @@ class Engine:
                                     format(epoch, iteration, loss_train, \
                                     loss_gap_i, acc_val_i))
                         
+                        if iteration % checkpoint_freq == 0:
+                            saver.save(sess, output_dir + \
+                                    '/checkpoints/session_ep' + \
+                                    str(epoch) + '_itr' + str(iteration))
+
                         iteration += 1
 
-                        # Get the summaries
-                        #  if itr % checkpoint_freq == 0:
-                        #      print('Epoch = {}, Iteration = {}, Train Loss = {}'.\
-                        #              format(epoch, itr, loss_train))
-                        #  itr += 1; itr_summary_train += 1
-                        #  if itr == 4:
-                        #      break
                     except tf.errors.OutOfRangeError:
                         break
-                #  t=time()
-                #  # Validation
-                #  sess.run(val_iter.initializer)
-                #  print('Validation')
-                #  loss_val = 0
-                #  itr_val = 0
-                #  while 1:
-                #      try:
-                #          x_val, y_val = sess.run(val_iter.get_next())
-                #          loss_val, summary = sess.run(
-                #                  [self.loss, summary_loss_val],
-                #                  feed_dict = {self.x: x_val, self.y: y_val}
-                #                  )
-                #          writer_val.add_summary(summary, itr_summary_val)
-                #          itr_val += 1; itr_summary_val += 1
-                #          if itr_val == 4:
-                #              break
-                #      except tf.errors.OutOfRangeError:
-                #          break
-                #  print('Validation Loss = ', loss_val)
-                #  print(time()-t)
-
 
     def evaluate(self):
         pass

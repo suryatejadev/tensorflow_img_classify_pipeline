@@ -2,3 +2,5 @@ data/
 *.pyc
 scripts/run_outputs
 scripts/tf_py2.7
+checkpoints/
+

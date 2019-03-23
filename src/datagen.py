@@ -77,7 +77,7 @@ class Data:
     # get_data() for CIFAR-10 dataset
     def get_data(self, src_path):
         img_paths = glob(src_path + '*.jpg')
-        N = 1000 # len(img_paths)
+        N = len(img_paths)
 
         idx = np.arange(N)
         np.random.shuffle(idx)

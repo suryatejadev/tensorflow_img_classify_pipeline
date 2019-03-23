@@ -26,12 +26,12 @@ def main(config_file):
     copyfile(config_file, os.path.join(output_dir, 'config.yaml'))
 
     # Get train and val datagen
-    data = datagen.Data(**config['data'])
+    data = datagen.Data(**config['datagen'])
     train_iter, val_iter = data.datagen(output_dir+'/logs/data', **config['datagen'])
     
     # Build the model
     model = engine.Engine(**config['model'])
-    model.train(train_iter, val_iter, output_dir+'/logs', **config['train'])
+    model.train(train_iter, val_iter, output_dir, **config['train'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
