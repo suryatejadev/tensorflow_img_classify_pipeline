@@ -4,4 +4,5 @@ scripts/run_outputs
 scripts/tf_py2.7
 checkpoints/
 .ipynb_checkpoints/
+logs/
 
